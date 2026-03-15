@@ -15,44 +15,95 @@ import seedReport from '../../content/reports/q1-market-outlook.json';
   </section>
 </BaseLayout>
 
-<script>
+<script define:vars={{ seedReport }}>
   import { renderReportBlocks, validateChartBlock } from '../../lib/reportRenderer';
-  const seed = { ...seedReport };
-  const editor = document.getElementById('editor');
-  const preview = document.getElementById('preview');
+
+  type ReportBlock = {
+    type: string;
+    [key: string]: unknown;
+  };
+
+  type ReportData = {
+    slug?: string;
+    title?: string;
+    blocks?: ReportBlock[];
+    [key: string]: unknown;
+  };
+
+  const seed: ReportData = structuredClone(seedReport);
   const key = 'report-draft-v1';
+
+  const editor = document.getElementById('editor') as HTMLTextAreaElement | null;
+  const preview = document.getElementById('preview') as HTMLDivElement | null;
+  const loadBtn = document.getElementById('load') as HTMLButtonElement | null;
+  const saveBtn = document.getElementById('save') as HTMLButtonElement | null;
+  const exportBtn = document.getElementById('export') as HTMLButtonElement | null;
+  const importInput = document.getElementById('import-file') as HTMLInputElement | null;
+
+  if (
+    !editor ||
+    !preview ||
+    !loadBtn ||
+    !saveBtn ||
+    !exportBtn ||
+    !importInput
+  ) {
+    throw new Error('Admin UI elements are missing.');
+  }
 
   const render = () => {
     try {
-      const data = JSON.parse(editor.value);
-      const chartErrors = (data.blocks || []).filter((b) => b.type === 'chart').flatMap(validateChartBlock);
-      if (chartErrors.length) console.error('Chart validation:', chartErrors);
-      preview.innerHTML = `<h3>${data.title}</h3>` + renderReportBlocks(data.blocks || []);
-    } catch (error) {
-      preview.textContent = `Invalid JSON: ${error.message}`;
+      const data = JSON.parse(editor.value) as ReportData;
+      const blocks = Array.isArray(data.blocks) ? data.blocks : [];
+
+      const chartErrors = blocks
+        .filter((block: ReportBlock) => block.type === 'chart')
+        .flatMap((block: ReportBlock) => validateChartBlock(block));
+
+      if (chartErrors.length) {
+        console.error('Chart validation:', chartErrors);
+      }
+
+      preview.innerHTML =
+        `<h3>${data.title ?? 'Untitled report'}</h3>` +
+        renderReportBlocks(blocks);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown error';
+      preview.textContent = `Invalid JSON: ${message}`;
     }
   };
 
-  document.getElementById('load').addEventListener('click', () => {
+  loadBtn.addEventListener('click', () => {
     editor.value = JSON.stringify(seed, null, 2);
     render();
   });
-  document.getElementById('save').addEventListener('click', () => localStorage.setItem(key, editor.value));
-  document.getElementById('export').addEventListener('click', () => {
+
+  saveBtn.addEventListener('click', () => {
+    localStorage.setItem(key, editor.value);
+  });
+
+  exportBtn.addEventListener('click', () => {
     const blob = new Blob([editor.value], { type: 'application/json' });
     const a = document.createElement('a');
+    const parsed = JSON.parse(editor.value) as ReportData;
+
     a.href = URL.createObjectURL(blob);
-    a.download = `${JSON.parse(editor.value).slug || 'report'}.json`;
+    a.download = `${parsed.slug || 'report'}.json`;
     a.click();
+    URL.revokeObjectURL(a.href);
   });
-  document.getElementById('import-file').addEventListener('change', async (event) => {
-    const file = event.target.files?.[0];
+
+  importInput.addEventListener('change', async (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement;
+    const file = target.files?.[0];
     if (!file) return;
+
     editor.value = await file.text();
     render();
   });
-  editor.addEventListener('input', render);
 
+  editor.addEventListener('input', render);
   editor.value = localStorage.getItem(key) || JSON.stringify(seed, null, 2);
   render();
 </script>
