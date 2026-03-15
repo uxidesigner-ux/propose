@@ -1,0 +1,5 @@
+---
+interface Props { title: string; summary: string; category: string; featured?: boolean; }
+const { title, summary, category, featured = false } = Astro.props;
+---
+<article class={`card ${featured ? 'featured' : ''}`}><p class="eyebrow">{category}</p><h3>{title}</h3><p>{summary}</p></article>

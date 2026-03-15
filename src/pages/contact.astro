@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactForm from '../components/contact/ContactForm.astro';
+import { contactInfo } from '../data/contact';
+---
+<BaseLayout title="Contact" description="Contact Northstar">
+  <section class="container grid two"><article class="card"><h1>Contact</h1><p>{contactInfo.email}</p><p>{contactInfo.phone}</p><p>{contactInfo.address}</p></article><ContactForm /></section>
+</BaseLayout>

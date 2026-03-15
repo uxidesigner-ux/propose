@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import SectionIntro from '../components/shared/SectionIntro.astro';
+import ServiceCard from '../components/services/ServiceCard.astro';
+import ProjectCard from '../components/projects/ProjectCard.astro';
+import BlogCard from '../components/blog/BlogCard.astro';
+import { services } from '../data/services';
+import { projects } from '../data/projects';
+import { testimonials } from '../data/testimonials';
+import { getCollection } from 'astro:content';
+import { withBase } from '../utils/paths';
+
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 2);
+---
+<BaseLayout title="Northstar Advisory" description="Premium consultancy website starter.">
+  <Hero />
+
+  <section class="container">
+    <SectionIntro title="Services" copy="Focused capabilities from strategy through execution." />
+    <div class="grid">{services.slice(0, 3).map((service) => <ServiceCard {...service} />)}</div>
+  </section>
+
+  <section class="container">
+    <SectionIntro title="Approach" copy="A practical process from discovery to operational rollout." />
+    <div class="grid">
+      <article class="card"><h3>Diagnose</h3><p>Map goals, constraints, and opportunities.</p></article>
+      <article class="card"><h3>Design</h3><p>Prototype decisions and alignment artifacts.</p></article>
+      <article class="card"><h3>Deliver</h3><p>Guide implementation with measurable checkpoints.</p></article>
+    </div>
+  </section>
+
+  <section class="container">
+    <SectionIntro title="Recent Projects" copy="Selected transformation work." />
+    <div class="grid">{projects.map((project) => <ProjectCard {...project} />)}</div>
+  </section>
+
+  <section class="container">
+    <SectionIntro title="Testimonials" copy="Feedback from partner teams." />
+    <div class="grid">
+      {testimonials.map((t) => (
+        <article class="card"><p>“{t.quote}”</p><p><strong>{t.author}</strong></p></article>
+      ))}
+    </div>
+  </section>
+
+  <section class="container">
+    <SectionIntro title="Latest Insights" copy="Thoughtful perspectives from our team." />
+    <div class="grid">
+      {posts.map((post) => (
+        <BlogCard
+          href={withBase(`/blog/${post.slug}`)}
+          title={post.data.title}
+          description={post.data.description}
+          category={post.data.category}
+        />
+      ))}
+    </div>
+  </section>
+
+  <section class="container">
+    <article class="card">
+      <h2>Ready to accelerate your next initiative?</h2>
+      <a class="btn" href={withBase('/contact')}>Contact us</a>
+    </article>
+  </section>
+</BaseLayout>

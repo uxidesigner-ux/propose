@@ -1,0 +1,16 @@
+---
+import { navigation } from '../../data/navigation';
+import { withBase } from '../../utils/paths';
+---
+<header class="site-header">
+  <div class="container row">
+    <a href={withBase('/')} class="brand">Northstar</a>
+    <nav aria-label="Primary">
+      <ul>
+        {navigation.map((item) => (
+          <li><a href={withBase(item.href)}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>

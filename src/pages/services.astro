@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ServiceCard from '../components/services/ServiceCard.astro';
+import { services } from '../data/services';
+import { withBase } from '../utils/paths';
+---
+<BaseLayout title="Services" description="Service offerings">
+  <section class="container">
+    <h1>Services</h1>
+    <p>Flexible engagement models for high-impact initiatives.</p>
+    <div class="grid">{services.map((service) => <ServiceCard {...service} />)}</div>
+    <p><a class="btn" href={withBase('/contact')}>Discuss your needs</a></p>
+  </section>
+</BaseLayout>

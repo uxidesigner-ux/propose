@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/projects/ProjectCard.astro';
+import { projectCategories, projects } from '../data/projects';
+---
+<BaseLayout title="Projects" description="Selected project work">
+  <section class="container"><h1>Projects</h1><div class="tabs">{projectCategories.map((cat)=><span>{cat}</span>)}</div><div class="grid">{projects.map((project)=><ProjectCard {...project} />)}</div></section>
+</BaseLayout>
