@@ -15,95 +15,106 @@ import seedReport from '../../content/reports/q1-market-outlook.json';
   </section>
 </BaseLayout>
 
-<script define:vars={{ seedReport }}>
-  import { renderReportBlocks, validateChartBlock } from '../../lib/reportRenderer';
+<script define:vars={{ seedReport }} is:inline>
+  const seed = JSON.parse(JSON.stringify(seedReport));
+  const storageKey = 'report-draft-v1';
 
-  type ReportBlock = {
-    type: string;
-    [key: string]: unknown;
-  };
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const loadBtn = document.getElementById('load');
+  const saveBtn = document.getElementById('save');
+  const exportBtn = document.getElementById('export');
+  const importInput = document.getElementById('import-file');
 
-  type ReportData = {
-    slug?: string;
-    title?: string;
-    blocks?: ReportBlock[];
-    [key: string]: unknown;
-  };
+  const safeArray = (value) => Array.isArray(value) ? value : [];
 
-  const seed: ReportData = structuredClone(seedReport);
-  const key = 'report-draft-v1';
+  const renderPreview = () => {
+    if (!(editor instanceof HTMLTextAreaElement)) return;
+    if (!(preview instanceof HTMLDivElement)) return;
 
-  const editor = document.getElementById('editor') as HTMLTextAreaElement | null;
-  const preview = document.getElementById('preview') as HTMLDivElement | null;
-  const loadBtn = document.getElementById('load') as HTMLButtonElement | null;
-  const saveBtn = document.getElementById('save') as HTMLButtonElement | null;
-  const exportBtn = document.getElementById('export') as HTMLButtonElement | null;
-  const importInput = document.getElementById('import-file') as HTMLInputElement | null;
-
-  if (
-    !editor ||
-    !preview ||
-    !loadBtn ||
-    !saveBtn ||
-    !exportBtn ||
-    !importInput
-  ) {
-    throw new Error('Admin UI elements are missing.');
-  }
-
-  const render = () => {
     try {
-      const data = JSON.parse(editor.value) as ReportData;
-      const blocks = Array.isArray(data.blocks) ? data.blocks : [];
+      const data = JSON.parse(editor.value);
+      const blocks = safeArray(data.blocks);
 
-      const chartErrors = blocks
-        .filter((block: ReportBlock) => block.type === 'chart')
-        .flatMap((block: ReportBlock) => validateChartBlock(block));
+      const items = blocks.map((block, index) => {
+        const blockType = block && block.type ? block.type : 'unknown';
+        const blockTitle = block && block.title ? ` — ${block.title}` : '';
+        return `<li><strong>${index + 1}. ${blockType}</strong>${blockTitle}</li>`;
+      }).join('');
 
-      if (chartErrors.length) {
-        console.error('Chart validation:', chartErrors);
-      }
-
-      preview.innerHTML =
-        `<h3>${data.title ?? 'Untitled report'}</h3>` +
-        renderReportBlocks(blocks);
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown error';
-      preview.textContent = `Invalid JSON: ${message}`;
+      preview.innerHTML = `
+        <div class="preview-card">
+          <p class="preview-label">Slug</p>
+          <p>${data.slug || 'n/a'}</p>
+        </div>
+        <div class="preview-card">
+          <p class="preview-label">Title</p>
+          <p>${data.title || 'Untitled report'}</p>
+        </div>
+        <div class="preview-card">
+          <p class="preview-label">Blocks</p>
+          <p>${blocks.length}</p>
+        </div>
+        <div class="preview-card preview-blocks">
+          <p class="preview-label">Block List</p>
+          <ol>${items || '<li>No blocks found</li>'}</ol>
+        </div>
+      `;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      preview.innerHTML = `<p class="preview-error">Invalid JSON: ${message}</p>`;
     }
   };
 
-  loadBtn.addEventListener('click', () => {
-    editor.value = JSON.stringify(seed, null, 2);
-    render();
-  });
+  if (loadBtn instanceof HTMLButtonElement && editor instanceof HTMLTextAreaElement) {
+    loadBtn.addEventListener('click', () => {
+      editor.value = JSON.stringify(seed, null, 2);
+      renderPreview();
+    });
+  }
 
-  saveBtn.addEventListener('click', () => {
-    localStorage.setItem(key, editor.value);
-  });
+  if (saveBtn instanceof HTMLButtonElement && editor instanceof HTMLTextAreaElement) {
+    saveBtn.addEventListener('click', () => {
+      localStorage.setItem(storageKey, editor.value);
+      alert('Draft saved to localStorage.');
+    });
+  }
 
-  exportBtn.addEventListener('click', () => {
-    const blob = new Blob([editor.value], { type: 'application/json' });
-    const a = document.createElement('a');
-    const parsed = JSON.parse(editor.value) as ReportData;
+  if (exportBtn instanceof HTMLButtonElement && editor instanceof HTMLTextAreaElement) {
+    exportBtn.addEventListener('click', () => {
+      const blob = new Blob([editor.value], { type: 'application/json' });
+      const link = document.createElement('a');
+      let filename = 'report.json';
 
-    a.href = URL.createObjectURL(blob);
-    a.download = `${parsed.slug || 'report'}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
+      try {
+        const parsed = JSON.parse(editor.value);
+        if (parsed && parsed.slug) filename = `${parsed.slug}.json`;
+      } catch (_) {}
 
-  importInput.addEventListener('change', async (event: Event) => {
-    const target = event.currentTarget as HTMLInputElement;
-    const file = target.files?.[0];
-    if (!file) return;
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+  }
 
-    editor.value = await file.text();
-    render();
-  });
+  if (importInput instanceof HTMLInputElement && editor instanceof HTMLTextAreaElement) {
+    importInput.addEventListener('change', async (event) => {
+      const target = event.currentTarget;
+      if (!(target instanceof HTMLInputElement)) return;
 
-  editor.addEventListener('input', render);
-  editor.value = localStorage.getItem(key) || JSON.stringify(seed, null, 2);
-  render();
+      const file = target.files && target.files[0];
+      if (!file) return;
+
+      editor.value = await file.text();
+      renderPreview();
+      target.value = '';
+    });
+  }
+
+  if (editor instanceof HTMLTextAreaElement) {
+    editor.addEventListener('input', renderPreview);
+    editor.value = localStorage.getItem(storageKey) || JSON.stringify(seed, null, 2);
+    renderPreview();
+  }
 </script>
