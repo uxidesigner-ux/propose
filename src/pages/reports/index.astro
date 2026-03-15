@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../utils/paths';
+
+const reports = Object.values(import.meta.glob('../../content/reports/*.json', { eager: true })) as any[];
+---
+<BaseLayout title="Reports" description="Published reports">
+  <section class="container">
+    <h1>Reports</h1>
+    <div class="grid">
+      {reports.map((r) => (
+        <article class="card">
+          <h2><a href={withBase(`/reports/${r.slug}/`)}>{r.title}</a></h2>
+          <p>{r.description}</p>
+          <p>{r.date}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

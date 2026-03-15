@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { renderReportBlocks } from '../../lib/reportRenderer';
+
+export async function getStaticPaths() {
+  const reports = Object.values(import.meta.glob('../../content/reports/*.json', { eager: true })) as any[];
+  return reports.map((report) => ({ params: { slug: report.slug }, props: { report } }));
+}
+
+const { report } = Astro.props;
+const html = renderReportBlocks(report.blocks);
+---
+<BaseLayout title={report.title} description={report.description}>
+  <article class="container prose"><p class="eyebrow">Report</p><h1>{report.title}</h1><p>{report.subtitle}</p><div class="report-nav">{report.blocks.filter((b:any)=>b.visibleInNav).map((b:any)=><a href={`#${b.sectionId}`}>{b.navLabel}</a>)}</div><div set:html={html}></div></article>
+</BaseLayout>

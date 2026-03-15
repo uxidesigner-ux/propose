@@ -1,0 +1,68 @@
+{
+  "slug": "q1-market-outlook",
+  "title": "Q1 Market Outlook",
+  "subtitle": "Strategic observations for leadership teams",
+  "description": "A sample report generated from JSON blocks for GitHub-only publishing.",
+  "date": "2026-03-01",
+  "theme": "indigo",
+  "sources": ["Internal synthesis", "Public annual reports"],
+  "blocks": [
+    {
+      "id": "hero-1",
+      "type": "hero",
+      "sectionId": "overview",
+      "navLabel": "Overview",
+      "visibleInNav": true,
+      "title": "A measured rebound across key sectors",
+      "description": "Momentum is improving, but capital discipline remains essential.",
+      "styleVariant": "default",
+      "order": 1
+    },
+    {
+      "id": "kpi-1",
+      "type": "kpi-grid",
+      "sectionId": "kpis",
+      "navLabel": "KPIs",
+      "visibleInNav": true,
+      "title": "Executive KPI Snapshot",
+      "description": "Quarter-over-quarter directional movement.",
+      "styleVariant": "cards",
+      "order": 2,
+      "items": [
+        { "label": "Pipeline Growth", "value": "+14%" },
+        { "label": "Customer Retention", "value": "92%" },
+        { "label": "Cycle Time", "value": "-11%" }
+      ]
+    },
+    {
+      "id": "chart-1",
+      "type": "chart",
+      "sectionId": "trend",
+      "navLabel": "Trend",
+      "visibleInNav": true,
+      "title": "Demand Trend",
+      "description": "Illustrative trend from internal scoring.",
+      "styleVariant": "line",
+      "order": 3,
+      "chart": {
+        "labels": ["Jan", "Feb", "Mar", "Apr"],
+        "datasets": [
+          { "label": "Demand Index", "data": [62, 66, 71, 75] }
+        ]
+      }
+    },
+    {
+      "id": "cta-1",
+      "type": "cta-link",
+      "sectionId": "next",
+      "navLabel": "Next Steps",
+      "visibleInNav": true,
+      "title": "Request a tailored briefing",
+      "description": "Contact our strategy team for a custom deep dive.",
+      "styleVariant": "primary",
+      "order": 4,
+      "href": "/contact",
+      "label": "Contact Us"
+    }
+  ]
+}

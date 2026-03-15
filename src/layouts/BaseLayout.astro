@@ -1,0 +1,20 @@
+---
+import SeoHead from '../components/layout/SeoHead.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import MobileMenu from '../components/layout/MobileMenu.astro';
+import '../styles/global.css';
+
+interface Props { title: string; description: string; }
+const { title, description } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head><SeoHead title={title} description={description} /></head>
+  <body>
+    <Header />
+    <MobileMenu />
+    <main><slot /></main>
+    <Footer />
+  </body>
+</html>

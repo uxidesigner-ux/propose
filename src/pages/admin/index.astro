@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import seedReport from '../../content/reports/q1-market-outlook.json';
+---
+<BaseLayout title="Admin" description="Static report admin">
+  <section class="container admin">
+    <h1>Report Builder (GitHub-only MVP)</h1>
+    <p>Create and edit report JSON, then commit it to <code>src/content/reports/</code>.</p>
+    <div class="grid two">
+      <textarea id="editor" rows="24"></textarea>
+      <div><h2>Preview</h2><div id="preview" class="card"></div></div>
+    </div>
+    <div class="row"><button class="btn" id="load">Load Sample</button><button class="btn" id="save">Save Draft</button><button class="btn" id="export">Export JSON</button><label class="btn" for="import-file">Import JSON</label><input id="import-file" type="file" hidden accept="application/json" /></div>
+    <p>Publishing path: export JSON → place in <code>src/content/reports/&lt;slug&gt;.json</code> → commit/push → GitHub Pages deploy.</p>
+  </section>
+</BaseLayout>
+
+<script>
+  import { renderReportBlocks, validateChartBlock } from '../../lib/reportRenderer';
+  const seed = { ...seedReport };
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const key = 'report-draft-v1';
+
+  const render = () => {
+    try {
+      const data = JSON.parse(editor.value);
+      const chartErrors = (data.blocks || []).filter((b) => b.type === 'chart').flatMap(validateChartBlock);
+      if (chartErrors.length) console.error('Chart validation:', chartErrors);
+      preview.innerHTML = `<h3>${data.title}</h3>` + renderReportBlocks(data.blocks || []);
+    } catch (error) {
+      preview.textContent = `Invalid JSON: ${error.message}`;
+    }
+  };
+
+  document.getElementById('load').addEventListener('click', () => {
+    editor.value = JSON.stringify(seed, null, 2);
+    render();
+  });
+  document.getElementById('save').addEventListener('click', () => localStorage.setItem(key, editor.value));
+  document.getElementById('export').addEventListener('click', () => {
+    const blob = new Blob([editor.value], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${JSON.parse(editor.value).slug || 'report'}.json`;
+    a.click();
+  });
+  document.getElementById('import-file').addEventListener('change', async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    editor.value = await file.text();
+    render();
+  });
+  editor.addEventListener('input', render);
+
+  editor.value = localStorage.getItem(key) || JSON.stringify(seed, null, 2);
+  render();
+</script>
